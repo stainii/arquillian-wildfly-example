@@ -171,10 +171,19 @@
 
     <dependencies>
 
+        <!-- non-test dependencies -->
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>7.0</version>
+        </dependency>
+
+
         <!-- JUnit regression testing framework. -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
         
         <!-- JUnit Container Implementation for the Arquillian Project -->

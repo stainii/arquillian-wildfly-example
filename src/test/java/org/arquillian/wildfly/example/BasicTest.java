@@ -2,6 +2,7 @@ package org.arquillian.wildfly.example;
 
 import static org.junit.Assert.assertEquals;
 
+import javax.ejb.EJB;
 import javax.inject.Inject;
 
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -17,11 +18,11 @@ public class BasicTest {
 
     @Deployment
     public static JavaArchive createDeployment() {
-        return ShrinkWrap.create(JavaArchive.class).addClass(Greeter.class)
+        return ShrinkWrap.create(JavaArchive.class).addClass(org.arquillian.wildfly.example.Greeter.class)
                 .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
-    @Inject
+    @EJB
     private Greeter greeter;
 
     @Test
