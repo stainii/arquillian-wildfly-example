@@ -23,7 +23,7 @@ Tolis-e has created a very simple example test, on which the following test is b
 
 #### The tested object
 
-The bean that we are going to test is the [be.stijnhooft.arquillian.example.simple.Greeter](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/wildfly/example/simple/Greeter.java) bean.
+The bean that we are going to test is the [be.stijnhooft.arquillian.example.simple.Greeter](src/main/java/be/stijnhooft/arquillian/example/simple/Greeter.java) bean.
 This is a simple EJB which takes an argument and returns a String.
 
 ```java
@@ -228,7 +228,7 @@ public void createGreeting() {
 }
 ```
 
-[Have a look at the whole test class.](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/test/java/be/stijnhooft/wildfly/example/simple/GreeterTest.java)
+[Have a look at the whole test class.](src/test/java/be/stijnhooft/arquillian/example/simple/GreeterTest.java)
 
 ##### Run the test
 Now, the only thing left to do, is running the test with `mvn test`!
@@ -241,10 +241,10 @@ Now, the only thing left to do, is running the test with `mvn test`!
 Let's increase the complexity. I want to be able to change the greeting, by persisting and changing the greeting in the database.
 
 In order to do that, I've created 
-* a [Greeting entity]((https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/wildfly/example/jpa/Greeting.java))
-* a [GreetingRepository]((https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/wildfly/example/jpa/GreetingRepository.java))
-* a [GreetingService]((https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/wildfly/example/jpa/GreetingService.java))
-* a [persistence.xml configuration file]((https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/resources/META-INF/persistence.xml))
+* a [Greeting entity](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/arquillian/example/jpa/Greeting.java)
+* a [GreetingRepository](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/arquillian/example/jpa/GreetingRepository.java)
+* a [GreetingService](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/arquillian/example/jpa/GreetingService.java)
+* a [persistence.xml configuration file](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/resources/META-INF/persistence.xml)
 
 Also, I've added a dependency to an in-memory database, which will start up at deploy time.
 
@@ -377,7 +377,7 @@ After a long search I've found another mistake.
 
 The @Transactional annotation **in the test** should come from `import org.jboss.arquillian.transaction.api.annotation.Transactional`, while the @Trancational annotations in production code come from `javax.transaction.Transactional`;
 
-Knowing this, the test succeeds!
+Knowing this, [the test](src/test/java/be/stijnhooft/arquillian/example/jpa/GreetingServiceTest.java) succeeds!
  
 ## Supplementary Documentation
 
