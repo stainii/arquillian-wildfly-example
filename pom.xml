@@ -8,13 +8,6 @@
     <packaging>jar</packaging>
     <version>0.0.1</version>
 
-    <developers>
-        <developer>
-            <name>Tolis Emmanouilidis</name>
-            <email>tolisemm@gmail.com</email>
-        </developer>
-    </developers>
-
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -92,11 +85,21 @@
                 <type>pom</type>
             </dependency>
 
+            <!-- extension to start transactions in tests -->
+            <dependency>
+                <groupId>org.jboss.arquillian.extension</groupId>
+                <artifactId>arquillian-transaction-bom</artifactId>
+                <version>1.0.5</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!-- JUnit regression testing framework. -->
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${version.junit}</version>
+                <scope>test</scope>
             </dependency>
 
         </dependencies>
@@ -177,6 +180,11 @@
             <artifactId>javaee-api</artifactId>
             <version>7.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.4.0</version>
+        </dependency>
 
 
         <!-- JUnit regression testing framework. -->
@@ -185,7 +193,14 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-        
+
+        <!-- Maven resolver -->
+        <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- JUnit Container Implementation for the Arquillian Project -->
         <dependency>
             <groupId>org.jboss.arquillian.junit</groupId>
@@ -196,6 +211,13 @@
         <dependency>
             <groupId>org.jboss.arquillian.protocol</groupId>
             <artifactId>arquillian-protocol-servlet</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- extension to start transactions in tests -->
+        <dependency>
+            <groupId>org.jboss.arquillian.extension</groupId>
+            <artifactId>arquillian-transaction-jta</artifactId>
             <scope>test</scope>
         </dependency>
 

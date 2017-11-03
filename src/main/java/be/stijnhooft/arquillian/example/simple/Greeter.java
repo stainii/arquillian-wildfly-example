@@ -1,4 +1,4 @@
-package org.arquillian.wildfly.example;
+package be.stijnhooft.arquillian.example.simple;
 
 import javax.ejb.Stateless;
 
