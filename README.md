@@ -241,27 +241,81 @@ Now, the only thing left to do, is running the test with `mvn test`!
 Let's increase the complexity. I want to be able to change the greeting, by persisting and changing the greeting in the database.
 
 In order to do that, I've created 
-* a [Greeting entity](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/arquillian/example/jpa/Greeting.java)
-* a [GreetingRepository](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/arquillian/example/jpa/GreetingRepository.java)
-* a [GreetingService](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/arquillian/example/jpa/GreetingService.java)
-* a [persistence.xml configuration file](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/resources/META-INF/persistence.xml)
+* a [Greeting entity](src/main/java/be/stijnhooft/arquillian/example/jpa/Greeting.java)
+* a [GreetingRepository](src/main/java/be/stijnhooft/arquillian/example/jpa/GreetingRepository.java)
+* a [GreetingService](src/main/java/be/stijnhooft/arquillian/example/jpa/GreetingService.java)
+* a [persistence.xml configuration file](src/main/resources/META-INF/persistence.xml)
 
-Also, I've added a dependency to an in-memory database, which will start up at deploy time.
+What about the database? Wildfly has a built-in H2 database. Let's make use of that. 
+
+#### Defining a new standalone.xml
+First, we need a datasource to the in-memory H2 database that's built in, in Wildfly. We can create one by **adapting
+the standalone.xml**.
+
+* Copy over a clean standalone.xml to **src/test/resources/wildfly/standalone-test.xml**, and add a datasource.
+Checkout the *java:jboss/datasources/arquillianTest* datasource in 
+[this example](src/test/resources/wildfly/standalone-test.xml).
+
+* This standalone-test.xml needs be copied over to the configuration folder of our Wildfly. We can use the
+maven-resource plugin to do this for us.
 
 ```xml
-<dependency>
-    <groupId>org.hsqldb</groupId>
-    <artifactId>hsqldb</artifactId>
-    <version>2.4.0</version>
-</dependency>
+<build>
+    ...
+    <plugins>
+        ...
+        <!-- copy over the Wildfly config -->
+        <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>2.7</version>
+            <executions>
+                <execution>
+                    <id>copy-configuration-resource</id>
+                    <phase>process-test-resources</phase>
+                    <goals>
+                        <goal>copy-resources</goal>
+                    </goals>
+                    <configuration>
+                        <outputDirectory>
+                            ${project.build.directory}/wildfly-8.1.0.Final/standalone/configuration
+                        </outputDirectory>
+                        <resources>
+                            <resource>
+                                <directory>${project.basedir}/src/test/resources/wildfly</directory>
+                                <includes>
+                                    <include>*.xml</include>
+                                    <include>*.properties</include>
+                                </includes>
+                            </resource>
+                        </resources>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+
 ```
+
+* Wilfly searches by default for *standalone.xml*, not *standalone-test.xml*. Let's configure that differently in
+*arquillian.xml*, right under the *jbossHome* config property.
+
+```xml
+<container qualifier="widlfly-managed" default="true">
+    <configuration>
+        <property name="jbossHome">${jbossHome:target/wildfly-8.1.0.Final}</property>
+        <property name="serverConfig">standalone-test.xml</property>
+    </configuration>
+</container>
+```
+
 
 #### The deployment archive
 This time, we have more to pack in the deployment archive:
 
 * the service, repository and entity
 * the persistence.xml
-* the hsqldb dependency
+* our Maven dependencies
 
 In order to retrieve the Maven dependencies, we're going to add a handy library to our dependencies.
 
@@ -379,7 +433,57 @@ The @Transactional annotation **in the test** should come from `import org.jboss
 
 Knowing this, [the test](src/test/java/be/stijnhooft/arquillian/example/jpa/GreetingServiceTest.java) succeeds!
  
+ 
+### Test 3: introducing DBUnit to manage our database data sets
+
+> Goal: let DBUnit take care of bringing the database in a correct state, containing the right test data set.
+
+In our [previous test](src/test/java/be/stijnhooft/arquillian/example/jpa/GreetingServiceTest.java), we brought the database in a desirable state with JPA. However, this way of working is a bit naive:
+* this gives you no certainty about the used ids
+* for larger data sets, you need to write more code to create the data set then for the test
+* it's easy to forget to clean up some data after the test, possibly causing a failure of the next test
+
+Luckily, a popular test framework, called DBUnit, has come to the rescue! And even better: the JBoss team has created an extension for Arquillian, integrating DBUnit quite nicely.
+
+#### The tested object
+We're going to test the same [GreetingService](https://github.com/stainii/arquillian-wildfly-example/blob/master/src/main/java/be/stijnhooft/arquillian/example/jpa/GreetingService.java) as in test 2. 
+
+#### Setup
+Let's start by adding the DBUnit extension of Arquillian to our dependencies.
+
+```xml
+<dependencies>
+   ...
+   <dependency>
+       <groupId>org.jboss.arquillian.extension</groupId>
+       <artifactId>arquillian-persistence-dbunit</artifactId>
+       <version>1.0.0.Alpha7</version>
+       <scope>test</scope>
+   </dependency>
+</dependencies>
+```
+
+#### The test class
+Let's copy over [the previous test](src/test/java/be/stijnhooft/arquillian/example/jpa/GreetingServiceTest.java), and 
+get rid of the entity manager and the persist/remove code.
+
+#### And, does it run?
+Nope. We get a weird `NullPointerException` when closing the dataset. What does this mean?
+
+In order for the persistence-extension to use our database, we need to tell it which datasource to use. We can do this 
+by adding the following config to *arquillian.xml*.
+
+```xml
+<!-- configure dbunit -->
+<extension qualifier="persistence">
+    <property name="defaultDataSource">java:jboss/datasources/arquillianTest</property>
+</extension>
+```
+
+An alternative could be to add a `@DataSource("java:jboss/datasources/arquillianTest")` annotation to your test.
+  
 ## Supplementary Documentation
 
 * [The original project's README](https://github.com/tolis-e/arquillian-wildfly-example/blob/master/README.md)
 * [Arquillian Guides](http://arquillian.org/guides/)
+* [Guide for Arquillian persistence extension](https://docs.jboss.org/author/display/ARQ/Persistence)

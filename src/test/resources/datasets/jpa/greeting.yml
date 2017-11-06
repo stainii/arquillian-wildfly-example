@@ -1,0 +1,4 @@
+greeting:
+  - id: 1
+    partBeforeName: 'Hello, '
+    partAfterName: '!'

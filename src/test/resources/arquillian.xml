@@ -20,12 +20,18 @@
     <container qualifier="widlfly-managed" default="true">
         <configuration>
             <property name="jbossHome">${jbossHome:target/wildfly-8.1.0.Final}</property>
+            <property name="serverConfig">standalone-test.xml</property>
         </configuration>
     </container>
 
     <!-- extension to start transactions in tests -->
     <extension qualifier="transaction">
         <property name="manager">java:jboss/UserTransaction</property>
+    </extension>
+
+    <!-- configure dbunit -->
+    <extension qualifier="persistence">
+        <property name="defaultDataSource">java:jboss/datasources/arquillianTest</property>
     </extension>
 
 </arquillian>
