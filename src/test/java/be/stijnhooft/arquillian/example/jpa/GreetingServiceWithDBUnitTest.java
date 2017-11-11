@@ -45,7 +45,6 @@ public class GreetingServiceWithDBUnitTest {
     @Test
     @Transactional
     @UsingDataSet("datasets/jpa/greeting.yml")
-    @DataSource("java:jboss/datasources/arquillianTest")
     public void getGreeting() {
         assertEquals("Hello, aliens!", greetingService.greet("aliens"));
     }

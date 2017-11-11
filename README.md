@@ -481,9 +481,52 @@ by adding the following config to *arquillian.xml*.
 ```
 
 An alternative could be to add a `@DataSource("java:jboss/datasources/arquillianTest")` annotation to your test.
-  
+
+And now we finally did it! [A working test](src/test/java/be/stijnhooft/arquillian/example/jpa/GreetingServiceWithDBUnitTest.java)!
+
+
+### Test 4: JMS
+
+> Goal: The test should put something on a JMS queue. An MDB will pick it up, and put a response on another (response) 
+queue. The test should check if the right message is put on that response queue.
+
+Let's go one step further. We create 2 queues: a request queue and a response queue. On the request queue, someone puts their name. An MDB will pick this up, create a greeting and put that greeting in the response queue.
+
+In our test, we will put a name on the request queue, and check whether the right greeting is put on the response queue.
+
+#### Adapt the standalone-test.xml
+I've added 
+* an extension: `<extension module="org.jboss.as.messaging"/>`
+* a messaging subsystem, with a request and response queue
+
+Check out [this example](src/test/resources/wildfly/standalone-test.xml).
+
+#### The code
+See the MDB and related classes in the new [jms package](src/main/java/be/stijnhooft/arquillian/example/jms).
+
+#### The test
+##### Shorten the `@Deployment` method
+The new JMS code uses the services in the [jms package](src/main/java/be/stijnhooft/arquillian/example/jpa). We need
+to add more and more classes to our deployment, and it's becoming unwieldy.
+
+Luckily, we can define complete packages in our Shrinkwrap definition.
+
+```java
+...
+return ShrinkWrap.create(WebArchive.class)
+                .addPackage("be.stijnhooft.arquillian.example.jms")
+                .addPackage("be.stijnhooft.arquillian.example.jpa")
+                .addAsResource("META-INF/persistence.xml")
+                .addAsLibraries(mavenDependencies);
+``` 
+
+And that's it for the configuration. Now we can write [all code that's necessary to put something on the request queue, 
+and wait for another message on the response queue](src/test/java/be/stijnhooft/arquillian/example/jms/GreetingRequestMDBTest.java).
+ 
 ## Supplementary Documentation
 
 * [The original project's README](https://github.com/tolis-e/arquillian-wildfly-example/blob/master/README.md)
 * [Arquillian Guides](http://arquillian.org/guides/)
 * [Guide for Arquillian persistence extension](https://docs.jboss.org/author/display/ARQ/Persistence)
+* [Catch performance regression with the Arquillian performance extension](https://docs.jboss.org/author/display/ARQ/Performance)
+* [Test the collaboration of multiple modules](https://docs.jboss.org/author/display/ARQ/Multiple+Deployments)
